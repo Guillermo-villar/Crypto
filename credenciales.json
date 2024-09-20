@@ -1,0 +1,26 @@
+[
+    {
+        "usuario": "A",
+        "contrase\u00f1a": "b"
+    },
+    {
+        "usuario": "B",
+        "contrase\u00f1a": "c"
+    },
+    {
+        "usuario": "C",
+        "contrase\u00f1a": "D"
+    },
+    {
+        "usuario": "Z",
+        "contrase\u00f1a": "x"
+    },
+    {
+        "usuario": "Manolo",
+        "contrase\u00f1a": "Zera"
+    },
+    {
+        "usuario": "Manolete",
+        "contrase\u00f1a": "Hola"
+    }
+]
