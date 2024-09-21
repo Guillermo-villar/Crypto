@@ -22,5 +22,13 @@
     {
         "usuario": "Manolete",
         "contrase\u00f1a": "Hola"
+    },
+    {
+        "usuario": "Hola",
+        "contrase\u00f1a": "1234"
+    },
+    {
+        "usuario": "georgeprobando",
+        "contrase\u00f1a": "@@@@@"
     }
 ]
