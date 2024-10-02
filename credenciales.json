@@ -30,5 +30,10 @@
     {
         "usuario": "georgeprobando",
         "contrase\u00f1a": "@@@@@"
+    },
+    {
+        "usuario": "daad",
+        "salt": "b1b42d40dc96b2147e1ed3d476db5d74",
+        "contrase\u00f1a": "c28dc0056b929daf4179367fbb406617c3f201d28342b974938d744de6482826"
     }
 ]
