@@ -50,5 +50,10 @@
         "usuario": "george",
         "salt": "050371880aa593314b375a010a7ce076",
         "contrase\u00f1a": "207d4bb263247458bbef6f703af88779da3b6255640f525e3d0961e4f865aae3"
+    },
+    {
+        "usuario": "jose",
+        "salt": "9ea23a6326ebc9b727e890213d53f882",
+        "contrase\u00f1a": "4fac2515d738cc34c280c089f2cd65536c4a786353c7d59e43095aa068557dcb"
     }
 ]
