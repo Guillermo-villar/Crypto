@@ -2,6 +2,7 @@ import os
 import json
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import Toplevel
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.backends import default_backend
 
@@ -91,6 +92,7 @@ def iniciar_sesion():
                 
                 if verificar_contraseña(contraseña, salt, hash_guardado):
                     messagebox.showinfo("Inicio de sesión", "Inicio de sesión exitoso")
+                    abrir_ventana_archivos() # Abrir ventana con archivos disponibles
                     root.quit()
                     return
                 else:
@@ -99,6 +101,19 @@ def iniciar_sesion():
         messagebox.showerror("Error", "Usuario o contraseña incorrectos")
     else:
         messagebox.showwarning("Advertencia", "Debe ingresar un usuario y contraseña")
+
+
+# Función para abrir una nueva ventana y mostrar archivos
+def abrir_ventana_archivos():
+    nueva_ventana = Toplevel(root)
+    nueva_ventana.title("Archivos disponibles")
+    nueva_ventana.geometry("400x300")
+
+    label_archivos = tk.Label(nueva_ventana, text="Archivos en el directorio:")
+    label_archivos.pack(pady=10)
+    nueva_ventana.mainloop()  # Ejecutar la ventana
+
+
 
 # Función para mostrar la pantalla de inicio de sesión o registro
 def pantalla_inicio():
@@ -145,3 +160,4 @@ btn_iniciar = tk.Button(root, text="Iniciar Sesión", command=iniciar_sesion)
 
 # Ejecutar la aplicación
 root.mainloop()
+
