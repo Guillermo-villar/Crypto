@@ -35,5 +35,20 @@
         "usuario": "daad",
         "salt": "b1b42d40dc96b2147e1ed3d476db5d74",
         "contrase\u00f1a": "c28dc0056b929daf4179367fbb406617c3f201d28342b974938d744de6482826"
+    },
+    {
+        "usuario": "hola",
+        "salt": "01f9c78c6125715b24b9e1de4310851f",
+        "contrase\u00f1a": "7197e60d551d26cfe859629cc309740bf3bc9ccabee24298853983d00dbb51b6"
+    },
+    {
+        "usuario": "george",
+        "salt": "bcf8bfffb17e11eb2188484b767cf929",
+        "contrase\u00f1a": "059d82ce6e827e5186c418ef7344d6e195c191a29474b82978ae9164aee8dd00"
+    },
+    {
+        "usuario": "george",
+        "salt": "050371880aa593314b375a010a7ce076",
+        "contrase\u00f1a": "207d4bb263247458bbef6f703af88779da3b6255640f525e3d0961e4f865aae3"
     }
 ]
