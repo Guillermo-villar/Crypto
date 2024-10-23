@@ -1,10 +1,10 @@
 import os
 import json
 import tkinter as tk
-from tkinter import messagebox
-from tkinter import Toplevel
+from tkinter import messagebox, Toplevel, filedialog
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.backends import default_backend
+import shutil
 
 # Función para guardar credenciales en un archivo JSON
 def guardar_credenciales(credenciales, archivo):
@@ -58,7 +58,7 @@ def agregar_credenciales(usuario, contraseña, archivo_json):
 
     nueva_credencial = {"usuario": usuario, "salt": salt, "contraseña": hash_contraseña}
     credenciales_guardadas.append(nueva_credencial)
-    
+    os.mkdir("Users/"+usuario)
     guardar_credenciales(credenciales_guardadas, archivo_json)
 
 # Función para manejar la acción al presionar "Guardar" en el registro
@@ -78,6 +78,34 @@ def guardar_credencial():
     else:
         messagebox.showwarning("Advertencia", "Debe ingresar un usuario y contraseña")
 
+def abrir_sistema(usuario):
+    ventana_sistema = Toplevel(root)
+    ventana_sistema.title("Sistema")
+    ventana_sistema.geometry("400x300")
+
+    # Botón Sistema (puedes agregar funcionalidades adicionales aquí)
+    btn_sistema = tk.Button(ventana_sistema, text="Sistema", command=lambda: messagebox.showinfo("Sistema", "Funcionalidad del sistema"))
+    btn_sistema.pack(pady=10)
+
+    # Botón Archivos que permitirá seleccionar un archivo .txt
+    btn_archivos = tk.Button(ventana_sistema, text="Archivos", command=lambda: seleccionar_archivo(usuario))
+    btn_archivos.pack(pady=10)
+
+# Función para abrir el cuadro de diálogo y seleccionar un archivo .txt
+def seleccionar_archivo(usuario):
+    archivo = filedialog.askopenfilename(
+        title="Selecciona un archivo .txt",
+        filetypes=[("Archivos de texto", "*.txt")]
+    )
+    if archivo:
+        # Definir la ruta de destino en la carpeta del usuario
+        ruta_destino = os.path.join("Users", usuario, os.path.basename(archivo))
+        try:
+            shutil.copy(archivo, ruta_destino)
+            messagebox.showinfo("Éxito", f"Archivo {os.path.basename(archivo)} subido correctamente a la carpeta de {usuario}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al subir el archivo: {e}")
+
 # Función para manejar la acción al presionar "Iniciar sesión"
 def iniciar_sesion():
     usuario = entry_usuario.get()
@@ -92,8 +120,8 @@ def iniciar_sesion():
                 
                 if verificar_contraseña(contraseña, salt, hash_guardado):
                     messagebox.showinfo("Inicio de sesión", "Inicio de sesión exitoso")
-                    abrir_ventana_archivos() # Abrir ventana con archivos disponibles
-                    root.quit()
+                    root.withdraw()  # Cierra la ventana de inicio
+                    abrir_sistema(usuario)  # Abre la ventana del sistema
                     return
                 else:
                     messagebox.showerror("Error", "Usuario o contraseña incorrectos")
@@ -101,19 +129,6 @@ def iniciar_sesion():
         messagebox.showerror("Error", "Usuario o contraseña incorrectos")
     else:
         messagebox.showwarning("Advertencia", "Debe ingresar un usuario y contraseña")
-
-
-# Función para abrir una nueva ventana y mostrar archivos
-def abrir_ventana_archivos():
-    nueva_ventana = Toplevel(root)
-    nueva_ventana.title("Archivos disponibles")
-    nueva_ventana.geometry("400x300")
-
-    label_archivos = tk.Label(nueva_ventana, text="Archivos en el directorio:")
-    label_archivos.pack(pady=10)
-    nueva_ventana.mainloop()  # Ejecutar la ventana
-
-
 
 # Función para mostrar la pantalla de inicio de sesión o registro
 def pantalla_inicio():
@@ -134,7 +149,7 @@ def pantalla_inicio():
 
 # Interfaz gráfica con tkinter
 root = tk.Tk()
-root.title("Gestión de Credencial3s")
+root.title("Gestión de Credenciales")
 root.geometry("400x300")
 
 # Variables para la opción seleccionada
@@ -158,6 +173,8 @@ entry_contraseña = tk.Entry(root, show="*")
 btn_guardar = tk.Button(root, text="Guardar", command=guardar_credencial)
 btn_iniciar = tk.Button(root, text="Iniciar Sesión", command=iniciar_sesion)
 
+if not os.path.exists("Users"):
+    os.mkdir("Users")
+
 # Ejecutar la aplicación
 root.mainloop()
-
