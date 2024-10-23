@@ -58,7 +58,7 @@ def agregar_credenciales(usuario, contraseña, archivo_json):
 
     nueva_credencial = {"usuario": usuario, "salt": salt, "contraseña": hash_contraseña}
     credenciales_guardadas.append(nueva_credencial)
-    os.mkdir("Users/"+usuario)
+    os.mkdir("Users/" + usuario)
     guardar_credenciales(credenciales_guardadas, archivo_json)
 
 # Función para manejar la acción al presionar "Guardar" en el registro
@@ -78,18 +78,49 @@ def guardar_credencial():
     else:
         messagebox.showwarning("Advertencia", "Debe ingresar un usuario y contraseña")
 
+# Función para abrir la ventana del sistema
 def abrir_sistema(usuario):
     ventana_sistema = Toplevel(root)
     ventana_sistema.title("Sistema")
     ventana_sistema.geometry("400x300")
 
     # Botón Sistema (puedes agregar funcionalidades adicionales aquí)
-    btn_sistema = tk.Button(ventana_sistema, text="Sistema", command=lambda: messagebox.showinfo("Sistema", "Funcionalidad del sistema"))
+    btn_sistema = tk.Button(ventana_sistema, text="Sistema", command=lambda: seleccionar_sistema(usuario))
     btn_sistema.pack(pady=10)
 
     # Botón Archivos que permitirá seleccionar un archivo .txt
     btn_archivos = tk.Button(ventana_sistema, text="Archivos", command=lambda: seleccionar_archivo(usuario))
     btn_archivos.pack(pady=10)
+
+# Nueva función para seleccionar el sistema y mostrar los usuarios
+def seleccionar_sistema(usuario):
+    ventana_usuarios = Toplevel(root)
+    ventana_usuarios.title("Usuarios")
+    ventana_usuarios.geometry("300x400")
+
+    # Etiqueta
+    label_usuarios = tk.Label(ventana_usuarios, text="Usuarios disponibles:")
+    label_usuarios.pack(pady=10)
+
+    # Botón para "Mi Carpeta"
+    btn_mi_carpeta = tk.Button(
+        ventana_usuarios, text="Mi Carpeta",
+        command=lambda: abrir_carpeta_usuario(f"Users/{usuario}")
+    )
+    btn_mi_carpeta.pack(pady=5)
+
+    # Crear botones para acceder a las carpetas de otros usuarios
+    for carpeta in os.listdir("Users"):
+        if carpeta != usuario:
+            btn_otros = tk.Button(
+                ventana_usuarios, text=carpeta,
+                command=lambda carpeta=carpeta: abrir_carpeta_usuario(f"Users/{carpeta}")
+            )
+            btn_otros.pack(pady=5)
+
+# Función para abrir la carpeta de un usuario específico
+def abrir_carpeta_usuario(carpeta_usuario):
+    os.startfile(carpeta_usuario)  # En Windows; usar `subprocess.call(['open', carpeta_usuario])` en macOS
 
 # Función para abrir el cuadro de diálogo y seleccionar un archivo .txt
 def seleccionar_archivo(usuario):
