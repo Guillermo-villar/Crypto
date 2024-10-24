@@ -165,7 +165,16 @@ def compartir_documento(usuario, nombre_archivo, usuario_a_compartir):
 
 def editar_documento(usuario, nombre_archivo):
     if verificar_acceso_usuario(usuario, nombre_archivo):
-        ruta_archivo = os.path.join("Users", usuario, nombre_archivo + ".enc")
+        # Buscar el archivo en todas las carpetas de usuarios
+        ruta_archivo = None
+        for root_dir, dirs, files in os.walk("Users"):
+            if nombre_archivo + ".enc" in files:
+                ruta_archivo = os.path.join(root_dir, nombre_archivo + ".enc")
+                break
+        
+        if ruta_archivo is None:
+            messagebox.showerror("Error", "No se encontró el archivo cifrado.")
+            return
         
         try:
             with open(ruta_archivo, "rb") as f:
@@ -202,6 +211,26 @@ def editar_documento(usuario, nombre_archivo):
         text_area.insert(tk.END, contenido.decode())
         text_area.pack(expand=True, fill="both")
 
+        def guardar_cambios():
+            nuevo_contenido = text_area.get("1.0", tk.END).encode()
+            nueva_clave, nuevo_nonce, nuevo_contenido_cifrado = cifrar_datos_aes_gcm(nuevo_contenido, associated_data)
+            
+            with open(ruta_archivo, "wb") as f:
+                f.write(nuevo_contenido_cifrado)
+            
+            info_cifrado["clave"] = nueva_clave.hex()
+            info_cifrado["nonce"] = nuevo_nonce.hex()
+            
+            with open("informacion_cifrado.json", "w") as f:
+                json.dump({"documentos": {nombre_archivo: info_cifrado}}, f, indent=4)
+            
+            messagebox.showinfo("Éxito", "Documento guardado y cifrado nuevamente.")
+            ventana_edicion.destroy()
+
+        btn_guardar = tk.Button(ventana_edicion, text="Guardar cambios", command=guardar_cambios)
+        btn_guardar.pack(pady=5)
+    else:
+        messagebox.showerror("Error", "No tienes permisos para editar este documento.")
 
 # Función para manejar el registro de usuario
 def guardar_credencial():
