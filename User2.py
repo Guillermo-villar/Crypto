@@ -162,7 +162,7 @@ def compartir_documento(usuario, nombre_archivo, usuario_a_compartir):
                 messagebox.showerror("Error", "No tienes permisos para compartir este documento.")
     except FileNotFoundError:
         messagebox.showerror("Error", "El archivo de información de cifrado no fue encontrado.")
-
+        
 def editar_documento(usuario, nombre_archivo):
     if verificar_acceso_usuario(usuario, nombre_archivo):
         # Buscar el archivo en todas las carpetas de usuarios
@@ -187,7 +187,8 @@ def editar_documento(usuario, nombre_archivo):
 
         try:
             with open("informacion_cifrado.json", "r") as f:
-                info_cifrado = json.load(f)["documentos"][nombre_archivo]
+                informacion_cifrado = json.load(f)
+                info_cifrado = informacion_cifrado["documentos"][nombre_archivo]
                 clave = bytes.fromhex(info_cifrado["clave"])
                 nonce = bytes.fromhex(info_cifrado["nonce"])
                 associated_data = b"Archivo de usuario"  # Asegúrate de usar el mismo associated_data
@@ -222,7 +223,8 @@ def editar_documento(usuario, nombre_archivo):
             info_cifrado["nonce"] = nuevo_nonce.hex()
             
             with open("informacion_cifrado.json", "w") as f:
-                json.dump({"documentos": {nombre_archivo: info_cifrado}}, f, indent=4)
+                informacion_cifrado["documentos"][nombre_archivo] = info_cifrado
+                json.dump(informacion_cifrado, f, indent=4)
             
             messagebox.showinfo("Éxito", "Documento guardado y cifrado nuevamente.")
             ventana_edicion.destroy()
