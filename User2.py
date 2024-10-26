@@ -106,7 +106,7 @@ def seleccionar_archivo(usuario):
 
         # Verificación adicional
         print(f"Archivo cifrado guardado en: {ruta_destino}")
-        print(f"Clave (hex): {clave.hex()}")
+        print(f"Clave (hex): {clave}")
         print(f"Nonce (hex): {nonce.hex()}")
 
 # Función para compartir un documento
@@ -157,7 +157,7 @@ def editar_documento(usuario, nombre_archivo):
             with open("informacion_cifrado.json", "r") as f:
                 informacion_cifrado = json.load(f)
                 info_cifrado = informacion_cifrado["documentos"][nombre_archivo]
-                clave = bytes.fromhex(info_cifrado["clave"])
+                clave = (bytes.fromhex(info_cifrado["clave"]))
                 nonce = bytes.fromhex(info_cifrado["nonce"])
                 associated_data = b"Archivo de usuario"  # Asegúrate de usar el mismo associated_data
         except Exception as e:
@@ -168,7 +168,7 @@ def editar_documento(usuario, nombre_archivo):
         print(f"Clave: {info_cifrado['clave']}")  # Mostrar clave en hexadecimal
         print(f"Nonce: {info_cifrado['nonce']}")  # Mostrar nonce en hexadecimal
         
-        contenido = descifrar_datos_aes_gcm(clave, nonce, contenido_cifrado, associated_data)
+        contenido = descifrar_datos_aes_gcm(bytes(descifrar_clave_aes(clave)), nonce, contenido_cifrado, associated_data)
         
         if contenido is None:
             messagebox.showerror("Error", "No se pudo descifrar el documento.")
