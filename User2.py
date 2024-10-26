@@ -187,7 +187,7 @@ def editar_documento(usuario, nombre_archivo):
             with open(ruta_archivo, "wb") as f:
                 f.write(nuevo_contenido_cifrado)
             
-            info_cifrado["clave"] = nueva_clave.hex()
+            info_cifrado["clave"] = cifrar_clave_aes(nueva_clave).hex()
             info_cifrado["nonce"] = nuevo_nonce.hex()
             
             with open("informacion_cifrado.json", "w") as f:
