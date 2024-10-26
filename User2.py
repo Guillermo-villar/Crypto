@@ -203,19 +203,34 @@ def editar_documento(usuario, nombre_archivo):
         messagebox.showerror("Error", "No tienes permisos para editar este documento.")
 
 # Función para manejar el registro de usuario
-def guardar_credencial():
-    usuario = entry_usuario.get()
-    contraseña = entry_contraseña.get()
+def guardar_credencial(usuario, contraseña):
     if usuario and contraseña:
         agregar_credenciales(usuario, contraseña, "credenciales.json")
+        messagebox.showinfo("Éxito", "Usuario registrado correctamente.")
     else:
         messagebox.showwarning("Advertencia", "Por favor, completa todos los campos.")
 
 # Función para manejar el inicio de sesión
 def iniciar_sesion():
-    usuario = entry_usuario.get()
-    contraseña = entry_contraseña.get()
-    
+    # Crear la interfaz gráfica
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    tk.Label(root, text="Usuario:").pack(pady=5)
+    entry_usuario = tk.Entry(root, width=30)
+    entry_usuario.pack(pady=5)
+
+    tk.Label(root, text="Contraseña:").pack(pady=5)
+    entry_contraseña = tk.Entry(root, show="*", width=30)
+    entry_contraseña.pack(pady=5)
+
+    btn_registrar = tk.Button(root, text="Registrar", command=lambda:guardar_credencial(entry_usuario.get(), entry_contraseña.get()), width=20)
+    btn_registrar.pack(pady=5)
+
+    btn_iniciar_sesion = tk.Button(root, text="Iniciar sesión", command=lambda: verificar_login(entry_usuario.get(), entry_contraseña.get()), width=20)
+    btn_iniciar_sesion.pack(pady=5)
+
+def verificar_login(usuario, contraseña):
     credenciales = cargar_deJSON("credenciales.json")
     for cred in credenciales:
         if cred["usuario"] == usuario and verificar_contraseña(contraseña, bytes.fromhex(cred["salt"]), cred["contraseña"]):
@@ -263,18 +278,7 @@ root = tk.Tk()
 root.title("Sistema de Gestión de Usuarios")
 root.geometry("400x400")
 
-tk.Label(root, text="Usuario:").pack(pady=5)
-entry_usuario = tk.Entry(root, width=30)
-entry_usuario.pack(pady=5)
-
-tk.Label(root, text="Contraseña:").pack(pady=5)
-entry_contraseña = tk.Entry(root, show="*", width=30)
-entry_contraseña.pack(pady=5)
-
-btn_registrar = tk.Button(root, text="Registrar", command=guardar_credencial, width=20)
-btn_registrar.pack(pady=5)
-
-btn_iniciar_sesion = tk.Button(root, text="Iniciar sesión", command=iniciar_sesion, width=20)
-btn_iniciar_sesion.pack(pady=5)
+# Llamar a iniciar_sesion() al inicio del programa
+iniciar_sesion()
 
 root.mainloop()
