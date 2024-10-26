@@ -106,7 +106,7 @@ def seleccionar_archivo(usuario):
 
         # Verificación adicional
         print(f"Archivo cifrado guardado en: {ruta_destino}")
-        print(f"Clave (hex): {clave.hex()}")
+        print(f"Clave (hex): {clave}")
         print(f"Nonce (hex): {nonce.hex()}")
 
 # Función para compartir un documento
@@ -157,7 +157,7 @@ def editar_documento(usuario, nombre_archivo):
             with open("informacion_cifrado.json", "r") as f:
                 informacion_cifrado = json.load(f)
                 info_cifrado = informacion_cifrado["documentos"][nombre_archivo]
-                clave = bytes.fromhex(info_cifrado["clave"])
+                clave = (bytes.fromhex(info_cifrado["clave"]))
                 nonce = bytes.fromhex(info_cifrado["nonce"])
                 associated_data = b"Archivo de usuario"  # Asegúrate de usar el mismo associated_data
         except Exception as e:
@@ -168,7 +168,7 @@ def editar_documento(usuario, nombre_archivo):
         print(f"Clave: {info_cifrado['clave']}")  # Mostrar clave en hexadecimal
         print(f"Nonce: {info_cifrado['nonce']}")  # Mostrar nonce en hexadecimal
         
-        contenido = descifrar_datos_aes_gcm(clave, nonce, contenido_cifrado, associated_data)
+        contenido = descifrar_datos_aes_gcm(bytes(descifrar_clave_aes(clave)), nonce, contenido_cifrado, associated_data)
         
         if contenido is None:
             messagebox.showerror("Error", "No se pudo descifrar el documento.")
@@ -203,19 +203,34 @@ def editar_documento(usuario, nombre_archivo):
         messagebox.showerror("Error", "No tienes permisos para editar este documento.")
 
 # Función para manejar el registro de usuario
-def guardar_credencial():
-    usuario = entry_usuario.get()
-    contraseña = entry_contraseña.get()
+def guardar_credencial(usuario, contraseña):
     if usuario and contraseña:
         agregar_credenciales(usuario, contraseña, "credenciales.json")
+        messagebox.showinfo("Éxito", "Usuario registrado correctamente.")
     else:
         messagebox.showwarning("Advertencia", "Por favor, completa todos los campos.")
 
 # Función para manejar el inicio de sesión
 def iniciar_sesion():
-    usuario = entry_usuario.get()
-    contraseña = entry_contraseña.get()
-    
+    # Crear la interfaz gráfica
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    tk.Label(root, text="Usuario:").pack(pady=5)
+    entry_usuario = tk.Entry(root, width=30)
+    entry_usuario.pack(pady=5)
+
+    tk.Label(root, text="Contraseña:").pack(pady=5)
+    entry_contraseña = tk.Entry(root, show="*", width=30)
+    entry_contraseña.pack(pady=5)
+
+    btn_registrar = tk.Button(root, text="Registrar", command=lambda:guardar_credencial(entry_usuario.get(), entry_contraseña.get()), width=20)
+    btn_registrar.pack(pady=5)
+
+    btn_iniciar_sesion = tk.Button(root, text="Iniciar sesión", command=lambda: verificar_login(entry_usuario.get(), entry_contraseña.get()), width=20)
+    btn_iniciar_sesion.pack(pady=5)
+
+def verificar_login(usuario, contraseña):
     credenciales = cargar_deJSON("credenciales.json")
     for cred in credenciales:
         if cred["usuario"] == usuario and verificar_contraseña(contraseña, bytes.fromhex(cred["salt"]), cred["contraseña"]):
@@ -263,18 +278,7 @@ root = tk.Tk()
 root.title("Sistema de Gestión de Usuarios")
 root.geometry("400x400")
 
-tk.Label(root, text="Usuario:").pack(pady=5)
-entry_usuario = tk.Entry(root, width=30)
-entry_usuario.pack(pady=5)
-
-tk.Label(root, text="Contraseña:").pack(pady=5)
-entry_contraseña = tk.Entry(root, show="*", width=30)
-entry_contraseña.pack(pady=5)
-
-btn_registrar = tk.Button(root, text="Registrar", command=guardar_credencial, width=20)
-btn_registrar.pack(pady=5)
-
-btn_iniciar_sesion = tk.Button(root, text="Iniciar sesión", command=iniciar_sesion, width=20)
-btn_iniciar_sesion.pack(pady=5)
+# Llamar a iniciar_sesion() al inicio del programa
+iniciar_sesion()
 
 root.mainloop()
