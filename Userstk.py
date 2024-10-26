@@ -7,13 +7,13 @@ from cryptography.hazmat.backends import default_backend
 import shutil
 
 # Función para guardar credenciales en un archivo JSON
-def guardar_credenciales(credenciales, archivo):
+def guardar_enJSON(credenciales, archivo):
     with open(archivo, 'w') as file:
         json.dump(credenciales, file, indent=4)
     messagebox.showinfo("Guardado", f"Credenciales guardadas en {archivo}")
 
 # Función para cargar credenciales existentes del archivo JSON
-def cargar_credenciales(archivo):
+def cargar_deJSON(archivo):
     try:
         with open(archivo, 'r') as file:
             return json.load(file)
@@ -47,10 +47,11 @@ def verificar_contraseña(contraseña, salt, hash_guardado):
         return True
     except:
         return False
+    
 
 # Función para agregar credenciales a la lista y guardarlas
 def agregar_credenciales(usuario, contraseña, archivo_json):
-    credenciales_guardadas = cargar_credenciales(archivo_json)
+    credenciales_guardadas = cargar_deJSON(archivo_json)
 
     # Generar un nuevo salt aleatorio para este usuario
     salt = os.urandom(16).hex()
@@ -59,7 +60,7 @@ def agregar_credenciales(usuario, contraseña, archivo_json):
     nueva_credencial = {"usuario": usuario, "salt": salt, "contraseña": hash_contraseña}
     credenciales_guardadas.append(nueva_credencial)
     os.mkdir("Users/" + usuario)
-    guardar_credenciales(credenciales_guardadas, archivo_json)
+    guardar_enJSON(credenciales_guardadas, archivo_json)
 
 # Función para manejar la acción al presionar "Guardar" en el registro
 def guardar_credencial():
@@ -143,7 +144,7 @@ def iniciar_sesion():
     contraseña = entry_contraseña.get()
 
     if usuario and contraseña:
-        credenciales_guardadas = cargar_credenciales("credenciales.json")
+        credenciales_guardadas = cargar_deJSON("credenciales.json")
         for credencial in credenciales_guardadas:
             if credencial["usuario"] == usuario:
                 salt = bytes.fromhex(credencial["salt"])
@@ -162,7 +163,7 @@ def iniciar_sesion():
         messagebox.showwarning("Advertencia", "Debe ingresar un usuario y contraseña")
 
 # Función para mostrar la pantalla de inicio de sesión o registro
-def pantalla_inicio():
+"""def pantalla_inicio():
     # Ocultar botones de la pantalla inicial
     btn_iniciar_sesion.pack_forget()
     btn_registrarse.pack_forget()
@@ -209,3 +210,4 @@ if not os.path.exists("Users"):
 
 # Ejecutar la aplicación
 root.mainloop()
+"""

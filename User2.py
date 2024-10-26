@@ -4,60 +4,28 @@ import tkinter as tk
 from tkinter import messagebox, Toplevel, filedialog
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+from Userstk import cargar_deJSON, hashear_contraseña, verificar_contraseña, agregar_credenciales
 
-# Función para guardar credenciales en un archivo JSON
-def guardar_credenciales(credenciales, archivo):
-    with open(archivo, 'w') as file:
-        json.dump(credenciales, file, indent=4)
-    messagebox.showinfo("Guardado", f"Credenciales guardadas en {archivo}")
 
-# Función para cargar credenciales existentes del archivo JSON
-def cargar_credenciales(archivo):
-    try:
-        with open(archivo, 'r') as file:
-            return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
+texto_clave_maestra= "Texto muy secreto de la clave maestra muy segura"
+salt_maestro = os.urandom(16).hex()
+clave_maestra = hashear_contraseña(texto_clave_maestra, bytes.fromhex(salt_maestro))
 
-# Función para hashear la contraseña con Scrypt
-def hashear_contraseña(contraseña, salt):
-    kdf = Scrypt(
-        salt=salt,
-        length=32,
-        n=2**14,
-        r=8,
-        p=1,
-        backend=default_backend()
-    )
-    return kdf.derive(contraseña.encode())
-
-# Función para verificar la contraseña con Scrypt
-def verificar_contraseña(contraseña, salt, hash_guardado):
-    kdf = Scrypt(
-        salt=salt,
-        length=32,
-        n=2**14,
-        r=8,
-        p=1,
-        backend=default_backend()
-    )
-    try:
-        kdf.verify(contraseña.encode(), bytes.fromhex(hash_guardado))
-        return True
-    except:
-        return False
-
-# Función para agregar credenciales a la lista y guardarlas
-def agregar_credenciales(usuario, contraseña, archivo_json):
-    credenciales_guardadas = cargar_credenciales(archivo_json)
-    salt = os.urandom(16).hex()
-    hash_contraseña = hashear_contraseña(contraseña, bytes.fromhex(salt)).hex()
+def cifrar_clave_aes(clave_aes):
+    #Funcion para cifrar la clave del AES
+    cipher = Cipher(algorithms.AES(clave_maestra), modes.ECB(), backend=default_backend())
+    encryptor = cipher.encryptor()
+    clave_cifrada = encryptor.update(clave_aes) + encryptor.finalize()
+    return clave_cifrada
     
-    nueva_credencial = {"usuario": usuario, "salt": salt, "contraseña": hash_contraseña}
-    credenciales_guardadas.append(nueva_credencial)
-    os.makedirs(f"Users/{usuario}", exist_ok=True)
-    guardar_credenciales(credenciales_guardadas, archivo_json)
+def descifrar_clave_aes(clave_cifrada):
+    #Funcion para descifrar la clave del AES
+    cipher = Cipher(algorithms.AES(clave_maestra), modes.ECB(), backend=default_backend())
+    decryptor = cipher.decryptor()
+    clave_aes_descifrada = decryptor.update(clave_cifrada) + decryptor.finalize()
+    return clave_aes_descifrada
 
 def cifrar_datos_aes_gcm(data, associated_data=None, bit_length=128):
     key = AESGCM.generate_key(bit_length=bit_length)
@@ -65,7 +33,6 @@ def cifrar_datos_aes_gcm(data, associated_data=None, bit_length=128):
     nonce = os.urandom(12)
     ciphertext = aesgcm.encrypt(nonce, data, associated_data)
     return key, nonce, ciphertext
-
 
 def descifrar_datos_aes_gcm(key, nonce, ciphertext, associated_data=None):
     aesgcm = AESGCM(key)
@@ -87,8 +54,9 @@ def guardar_informacion_cifrado(usuario, nombre_archivo, clave, nonce):
 
     # Asegúrate de que estás almacenando la clave y el nonce en formato hexadecimal
     if nombre_archivo not in informacion_cifrado["documentos"]:
+        
         informacion_cifrado["documentos"][nombre_archivo] = {
-            "clave": clave.hex(),
+            "clave": cifrar_clave_aes(clave).hex(),
             "nonce": nonce.hex(),
             "usuarios": [usuario]
         }
@@ -248,7 +216,7 @@ def iniciar_sesion():
     usuario = entry_usuario.get()
     contraseña = entry_contraseña.get()
     
-    credenciales = cargar_credenciales("credenciales.json")
+    credenciales = cargar_deJSON("credenciales.json")
     for cred in credenciales:
         if cred["usuario"] == usuario and verificar_contraseña(contraseña, bytes.fromhex(cred["salt"]), cred["contraseña"]):
             mostrar_opciones(usuario)
