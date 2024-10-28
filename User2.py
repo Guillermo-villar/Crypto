@@ -102,10 +102,21 @@ def seleccionar_archivo(usuario):
 
 def compartir_documento(usuario, nombre_archivo, usuario_a_compartir):
     try:
+        #Se abre el JSON en el que se comparten los archivos.
         with open("informacion_cifrado.json", 'r') as f:
             informacion_cifrado = json.load(f)
+        #Se chequea si el archivo a compartir existe
         if nombre_archivo in informacion_cifrado["documentos"]:
+            #Se chequea si el usuario es "dueño" del archivo
             if usuario in informacion_cifrado["documentos"][nombre_archivo]["usuarios"]:
+                #Estas lineas abren el json de credenciales y miran si el usuario a compartir es un usuario
+                with open("credenciales.json", 'r') as cred_file:
+                    credenciales = json.load(cred_file)
+                usuarios_existentes = [u["usuario"] for u in credenciales]
+                if usuario_a_compartir not in usuarios_existentes:
+                    messagebox.showerror("Error", f"{usuario_a_compartir} no es un usuario registrado.")
+                    return
+                #Se chequea si el usuario a compartir ya tiene acceso al archivo
                 if usuario_a_compartir not in informacion_cifrado["documentos"][nombre_archivo]["usuarios"]:
                     informacion_cifrado["documentos"][nombre_archivo]["usuarios"].append(usuario_a_compartir)
                     with open("informacion_cifrado.json", 'w') as f:
@@ -115,6 +126,8 @@ def compartir_documento(usuario, nombre_archivo, usuario_a_compartir):
                     messagebox.showinfo("Información", f"{usuario_a_compartir} ya tiene acceso a este archivo.")
             else:
                 messagebox.showerror("Error", "No tienes permisos para compartir este documento.")
+        else:
+            messagebox.showerror("Error", "El archivo no existe.")
     except FileNotFoundError:
         messagebox.showerror("Error", "El archivo de información de cifrado no fue encontrado.")
 
