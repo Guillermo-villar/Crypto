@@ -1,3 +1,3 @@
-George Hallak 100459094
-Guillermo Villar 100472121
-Jhonatan Barcos 100548615
+100459094 Hallak George 
+100472121 Villar Guillermo 
+100548615 Barcos Jhonatan 
