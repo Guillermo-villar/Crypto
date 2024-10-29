@@ -1,0 +1,26 @@
+{
+    "documentos": {
+        "a1.txt": {
+            "clave": "8c75646e5d783ae617a13f1043e2ed9f",
+            "nonce": "7c6aaac61f5aa168d118f70d",
+            "usuarios": [
+                "user11"
+            ]
+        },
+        "b.txt": {
+            "clave": "fda228fd0ece1de7c84f7dafbba90750",
+            "nonce": "c6efc8420c9a9e648e12fe38",
+            "usuarios": [
+                "user11"
+            ]
+        },
+        "c.txt": {
+            "clave": "edda2511b9495f6996d56fb50ed2bb7c",
+            "nonce": "ec87697ef1eeb5ee62cfa4e7",
+            "usuarios": [
+                "user11",
+                "user22"
+            ]
+        }
+    }
+}
