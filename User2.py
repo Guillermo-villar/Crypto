@@ -3,10 +3,9 @@ import json
 import tkinter as tk
 from tkinter import messagebox, Toplevel, filedialog
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from Userstk import cargar_deJSON, hashear_contraseña, verificar_contraseña, agregar_credenciales, guardar_credencial
+from Userstk import cargar_deJSON, hashear_contraseña, verificar_contraseña, guardar_credencial
 
 def cargar_clave_maestra():
     archivo_clave = "clave_maestra.json"
@@ -96,9 +95,6 @@ def seleccionar_archivo(usuario):
             file.write(contenido_cifrado)
         guardar_informacion_cifrado(usuario, os.path.basename(archivo), clave, nonce)
         messagebox.showinfo("Éxito", f"Archivo {os.path.basename(archivo)} cifrado y subido correctamente a la carpeta de {usuario}")
-        print(f"Archivo cifrado guardado en: {ruta_destino}")
-        print(f"Clave (hex): {clave.hex()}")
-        print(f"Nonce (hex): {nonce.hex()}")
 
 def compartir_documento(usuario, nombre_archivo, usuario_a_compartir):
     try:
@@ -144,9 +140,7 @@ def editar_documento(usuario, nombre_archivo):
         try:
             with open(ruta_archivo, "rb") as f:
                 contenido_cifrado = f.read()
-                print(f"Contenido cifrado de {nombre_archivo}: {contenido_cifrado.hex()}")
         except Exception as e:
-            print(f"Error al leer el archivo cifrado: {e}")
             messagebox.showerror("Error", "No se pudo leer el archivo cifrado.")
             return
         try:
@@ -157,11 +151,8 @@ def editar_documento(usuario, nombre_archivo):
                 nonce = bytes.fromhex(info_cifrado["nonce"])
                 associated_data = b"Archivo de usuario"
         except Exception as e:
-            print(f"Error al cargar información de cifrado: {e}")
             messagebox.showerror("Error", "No se pudo cargar la información de cifrado.")
             return
-        print(f"Clave: {info_cifrado['clave']}")
-        print(f"Nonce: {info_cifrado['nonce']}")
         contenido = descifrar_datos_aes_gcm(descifrar_clave_aes(clave), nonce, contenido_cifrado, associated_data)
         if contenido is None:
             messagebox.showerror("Error", "No se pudo descifrar el documento.")
@@ -236,7 +227,6 @@ def ver_carpeta(usuario):
         # Función para editar el archivo seleccionado
         def on_select(event):
             seleccion = listbox_archivos.curselection()
-            print("Soy gay")
             if seleccion:
                 nombre_archivo = listbox_archivos.get(seleccion[0])
                 editar_documento(usuario, nombre_archivo.replace(".enc", ""))  # Remover la extensión si está cifrado
