@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from Userstk import cargar_deJSON, hashear_contraseña, verificar_contraseña, agregar_credenciales
+from Userstk import cargar_deJSON, hashear_contraseña, verificar_contraseña, agregar_credenciales, guardar_credencial
 
 def cargar_clave_maestra():
     archivo_clave = "clave_maestra.json"
@@ -188,12 +188,6 @@ def editar_documento(usuario, nombre_archivo):
     else:
         messagebox.showerror("Error", "No tienes permisos para editar este documento.")
 
-def guardar_credencial(usuario, contraseña):
-    if usuario and contraseña:
-        agregar_credenciales(usuario, contraseña, "credenciales.json")
-        messagebox.showinfo("Éxito", "Usuario registrado correctamente.")
-    else:
-        messagebox.showwarning("Advertencia", "Por favor, completa todos los campos.")
 
 def iniciar_sesion():
     for widget in root.winfo_children():
@@ -213,14 +207,63 @@ def verificar_login(usuario, contraseña):
     credenciales = cargar_deJSON("credenciales.json")
     for cred in credenciales:
         if cred["usuario"] == usuario and verificar_contraseña(contraseña, bytes.fromhex(cred["salt"]), cred["contraseña"]):
-            mostrar_opciones(usuario)
+            ventana_seleccion(usuario)
             return
     messagebox.showerror("Error", "Usuario o contraseña incorrectos.")
+
+def ver_carpeta(usuario):
+    # Crear una nueva ventana para mostrar el contenido de la carpeta
+    ventana_carpeta = Toplevel(root)
+    ventana_carpeta.title(f"Carpeta de {usuario}")
+    ventana_carpeta.geometry("400x300")
+    # Ruta de la carpeta del usuario
+    ruta_carpeta = os.path.join("Users", usuario)
+    if not os.path.exists(ruta_carpeta):
+        messagebox.showerror("Error", f"No se encontró la carpeta de {usuario}.")
+        return
+    # Listar los archivos en la carpeta
+    archivos = os.listdir(ruta_carpeta)
+    if not archivos:
+        tk.Label(ventana_carpeta, text="La carpeta está vacía.", font=("Arial", 12)).pack(pady=10)
+    else:
+        tk.Label(ventana_carpeta, text="Archivos en tu carpeta:", font=("Arial", 12, "bold")).pack(pady=10)
+        # Crear un Listbox para mostrar los archivos
+        listbox_archivos = tk.Listbox(ventana_carpeta, width=50, height=10)
+        listbox_archivos.pack(pady=5)
+        # Insertar los nombres de los archivos en el Listbox
+        for archivo in archivos:
+            listbox_archivos.insert(tk.END, archivo)
+        # Función para editar el archivo seleccionado
+        def on_select(event):
+            seleccion = listbox_archivos.curselection()
+            print("Soy gay")
+            if seleccion:
+                nombre_archivo = listbox_archivos.get(seleccion[0])
+                editar_documento(usuario, nombre_archivo.replace(".enc", ""))  # Remover la extensión si está cifrado
+        # Asociar la función on_select al evento de clic en el Listbox
+        listbox_archivos.bind("<<ListboxSelect>>", on_select)
+
+def ventana_seleccion(usuario):
+    for widget in root.winfo_children():
+        widget.destroy()
+    tk.Label(root, text=f"Bienvenido, {usuario}!", font=("Arial", 16)).pack(pady=10)
+    
+    # Botón para ver la carpeta
+    btn_ver_carpeta = tk.Button(root, text="Ver mi carpeta", command=lambda: ver_carpeta(usuario), width=20)
+    btn_ver_carpeta.pack(pady=5)
+    
+    # Botón para acceder al sistema
+    btn_acceder_sistema = tk.Button(root, text="Acceder al sistema", command=lambda: mostrar_opciones(usuario), width=20)
+    btn_acceder_sistema.pack(pady=5)
 
 def mostrar_opciones(usuario):
     for widget in root.winfo_children():
         widget.destroy()
     tk.Label(root, text=f"Bienvenido, {usuario}!", font=("Arial", 16)).pack(pady=10)
+    # Agregar el botón con una flecha para volver a la pantalla de selección
+    btn_volver = tk.Button(root, text="← Volver", command=lambda: ventana_seleccion(usuario), font=("Arial", 12))
+    btn_volver.pack(anchor="nw", padx=10, pady=5)
+    #Boton para subir archivos
     btn_subir = tk.Button(root, text="Subir archivo", command=lambda: seleccionar_archivo(usuario), width=20)
     btn_subir.pack(pady=5)
     frame_compartir = tk.Frame(root)
@@ -241,6 +284,6 @@ def mostrar_opciones(usuario):
 
 root = tk.Tk()
 root.title("Sistema de Gestión de Usuarios")
-root.geometry("400x400")
+root.geometry("600x400")
 iniciar_sesion()
 root.mainloop()

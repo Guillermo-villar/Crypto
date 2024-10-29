@@ -62,22 +62,13 @@ def agregar_credenciales(usuario, contraseña, archivo_json):
     os.mkdir("Users/" + usuario)
     guardar_enJSON(credenciales_guardadas, archivo_json)
 
-# Función para manejar la acción al presionar "Guardar" en el registro
-def guardar_credencial():
-    usuario = entry_usuario.get()
-    contraseña = entry_contraseña.get()
-
+    
+def guardar_credencial(usuario, contraseña):
     if usuario and contraseña:
         agregar_credenciales(usuario, contraseña, "credenciales.json")
-        
-        respuesta = messagebox.askyesno("Agregar otro", "¿Desea agregar otro usuario?")
-        if not respuesta:
-            root.quit()  # Salir de la aplicación si no desea agregar más
-        else:
-            entry_usuario.delete(0, tk.END)
-            entry_contraseña.delete(0, tk.END)
+        messagebox.showinfo("Éxito", "Usuario registrado correctamente.")
     else:
-        messagebox.showwarning("Advertencia", "Debe ingresar un usuario y contraseña")
+        messagebox.showwarning("Advertencia", "Por favor, completa todos los campos.")
 
 # Función para abrir la ventana del sistema
 def abrir_sistema(usuario):
