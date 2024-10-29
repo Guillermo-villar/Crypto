@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+import shutil
 
 # Funciones de manejo de credenciales
 def guardar_enJSON(credenciales, archivo):
@@ -52,7 +53,12 @@ def agregar_credenciales(usuario, contraseña, archivo_json):
     hash_contraseña = hashear_contraseña(contraseña, bytes.fromhex(salt)).hex()
     nueva_credencial = {"usuario": usuario, "salt": salt, "contraseña": hash_contraseña}
     credenciales_guardadas.append(nueva_credencial)
-    os.mkdir("Users/" + usuario)
+    
+    # Ensure the Users directory exists before creating a user directory
+    if not os.path.exists("Users"):
+        os.mkdir("Users")
+    
+    os.mkdir(os.path.join("Users", usuario))
     guardar_enJSON(credenciales_guardadas, archivo_json)
 
 def guardar_credencial(usuario, contraseña):
