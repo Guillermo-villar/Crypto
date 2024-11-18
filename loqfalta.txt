@@ -1,0 +1,9 @@
+cifrado híbrido / firma
+
+Firma (lo q hará la mayoría): Que el sistema o algún usuario firmen un documento. 
+
+Se firma con una clave privada, Firma(doc) con Pv. Firma es asimétrica, pero se diferencia d usar un RSA para cifrar contenido,
+en que usas tu crave privada para demostrar q ha pasado por ti. 
+
+
+Híbrido (igual tendríamos q hacer esto al ser 3)
