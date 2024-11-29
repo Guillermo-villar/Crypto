@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import shutil
-
+from external import generar_par_claves
 # Funciones de manejo de credenciales
 def guardar_enJSON(credenciales, archivo):
     with open(archivo, 'w') as file:
@@ -47,23 +47,27 @@ def verificar_contraseña(contraseña, salt, hash_guardado):
     except:
         return False
 
-def agregar_credenciales(usuario, contraseña, archivo_json):
+def agregar_credenciales(usuario, contraseña ,contraseña_clavepriv, archivo_json):
     credenciales_guardadas = cargar_deJSON(archivo_json)
     salt = os.urandom(16).hex()
     hash_contraseña = hashear_contraseña(contraseña, bytes.fromhex(salt)).hex()
-    nueva_credencial = {"usuario": usuario, "salt": salt, "contraseña": hash_contraseña}
-    credenciales_guardadas.append(nueva_credencial)
+    hash_contraseña_clavepriv = hashear_contraseña(contraseña_clavepriv, bytes.fromhex(salt)).hex()
+    nueva_credencial = {"usuario": usuario, "salt": salt, "contraseña": hash_contraseña, "contraseña_clavepriv": hash_contraseña_clavepriv}
     
     # Ensure the Users directory exists before creating a user directory
     if not os.path.exists("Users"):
         os.mkdir("Users")
     
     os.mkdir(os.path.join("Users", usuario))
+    os.mkdir(os.path.join("Users", usuario, "claves"))
+    ruta_publica, ruta_privada = generar_par_claves(usuario, contraseña_clavepriv)
+    nueva_credencial.update({"rutapublica" : ruta_publica, "rutaprivada": ruta_privada})
+    credenciales_guardadas.append(nueva_credencial)
     guardar_enJSON(credenciales_guardadas, archivo_json)
 
-def guardar_credencial(usuario, contraseña):
+def guardar_credencial(usuario, contraseña ,contraseña_clavepriv):
     if (usuario and contraseña):
-        agregar_credenciales(usuario, contraseña, "credenciales.json")
+        agregar_credenciales(usuario, contraseña, contraseña_clavepriv, "credenciales.json")
         messagebox.showinfo("Éxito", "Usuario registrado correctamente.")
     else:
         messagebox.showwarning("Advertencia", "Por favor, completa todos los campos.")
@@ -249,10 +253,15 @@ def iniciar_sesion():
     tk.Label(root, text="Contraseña:").pack(pady=5)
     entry_contraseña = tk.Entry(root, show="*", width=30)
     entry_contraseña.pack(pady=5)
-    btn_registrar = tk.Button(root, text="Registrar", command=lambda: guardar_credencial(entry_usuario.get(), entry_contraseña.get()), width=20)
+    tk.Label(root, text="Contraseña de clave priv").pack(pady=5)
+    entry_contraseña_clave = tk.Entry(root, show="*", width=30)
+    entry_contraseña_clave.pack(pady=5)
+    btn_registrar = tk.Button(root, text="Registrar", command=lambda: guardar_credencial(entry_usuario.get(), entry_contraseña.get(), entry_contraseña_clave.get()), width=20)
     btn_registrar.pack(pady=5)
     btn_iniciar_sesion = tk.Button(root, text="Iniciar sesión", command=lambda: verificar_login(entry_usuario.get(), entry_contraseña.get()), width=20)
     btn_iniciar_sesion.pack(pady=5)
+    
+
 
 def verificar_login(usuario, contraseña):
     credenciales = cargar_deJSON("credenciales.json")
