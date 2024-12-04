@@ -1,6 +1,7 @@
 import os
 import json
 import tkinter as tk
+from tkinter import ttk
 import shutil
 from tkinter import messagebox, Toplevel, filedialog
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
@@ -339,26 +340,6 @@ def ver_historial_edicion(nombre_archivo):
         messagebox.showerror("Error", "El archivo de metadatos de edición no fue encontrado.")
     except json.JSONDecodeError:
         messagebox.showerror("Error", "Error al leer los metadatos de edición.")
-        
-        
-def iniciar_sesion():
-    for widget in root.winfo_children():
-        widget.destroy()
-    tk.Label(root, text="Usuario:").pack(pady=5)
-    entry_usuario = tk.Entry(root, width=30)
-    entry_usuario.pack(pady=5)
-    tk.Label(root, text="Contraseña:").pack(pady=5)
-    entry_contraseña = tk.Entry(root, show="*", width=30)
-    entry_contraseña.pack(pady=5)
-    tk.Label(root, text="Contraseña de clave priv").pack(pady=5)
-    entry_contraseña_clave = tk.Entry(root, show="*", width=30)
-    entry_contraseña_clave.pack(pady=5)
-    btn_registrar = tk.Button(root, text="Registrar", command=lambda: guardar_credencial(entry_usuario.get(), entry_contraseña.get(), entry_contraseña_clave.get()), width=20)
-    btn_registrar.pack(pady=5)
-    btn_iniciar_sesion = tk.Button(root, text="Iniciar sesión", command=lambda: verificar_login(entry_usuario.get(), entry_contraseña.get()), width=20)
-    btn_iniciar_sesion.pack(pady=5)
-    
-
 
 def verificar_login(usuario, contraseña):
     credenciales = cargar_deJSON("credenciales.json")
@@ -368,89 +349,140 @@ def verificar_login(usuario, contraseña):
             return
     messagebox.showerror("Error", "Usuario o contraseña incorrectos.")
 
-# Funciones de interfaz de usuario
-def ver_carpeta(usuario):
+
+# Funciones de la interfaz
+
+def iniciar_sesion():
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    main_frame = ttk.Frame(root, padding=20, style="TFrame")
+    main_frame.pack(expand=True, fill="both")
+
+    ttk.Label(main_frame, text="Iniciar Sesión", font=("Arial", 16, "bold")).pack(pady=10)
+
+    ttk.Label(main_frame, text="Usuario:").pack(anchor="w")
+    entry_usuario = ttk.Entry(main_frame, width=30)
+    entry_usuario.pack(pady=5)
+
+    ttk.Label(main_frame, text="Contraseña:").pack(anchor="w")
+    entry_contraseña = ttk.Entry(main_frame, show="*", width=30)
+    entry_contraseña.pack(pady=5)
+
+    ttk.Label(main_frame, text="Contraseña de clave privada:").pack(anchor="w")
+    entry_contraseña_clave = ttk.Entry(main_frame, show="*", width=30)
+    entry_contraseña_clave.pack(pady=5)
+
+    frame_botones = ttk.Frame(main_frame)
+    frame_botones.pack(pady=10)
+
+    ttk.Button(frame_botones, text="Registrar", command=lambda: guardar_credencial(
+        entry_usuario.get(), entry_contraseña.get(), entry_contraseña_clave.get())).pack(side="left", padx=10)
+
+    ttk.Button(frame_botones, text="Iniciar Sesión", command=lambda: verificar_login(
+        entry_usuario.get(), entry_contraseña.get())).pack(side="left", padx=10)
+
+def ventana_seleccion(usuario):
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    main_frame = ttk.Frame(root, padding=20, style="TFrame")
+    main_frame.pack(expand=True, fill="both")
+
+    ttk.Label(main_frame, text=f"Bienvenido, {usuario}!", font=("Arial", 16, "bold"), anchor="center").pack(pady=10)
+
+    ttk.Button(main_frame, text="Ver mi carpeta", command=lambda: ver_carpeta(usuario, ventana_seleccion)).pack(pady=10)
+    ttk.Button(main_frame, text="Acceder al sistema", command=lambda: mostrar_opciones(usuario, ventana_seleccion)).pack(pady=10)
+
+def mostrar_opciones(usuario, ventana_anterior):
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    main_frame = ttk.Frame(root, padding=20, style="TFrame")
+    main_frame.pack(expand=True, fill="both")
+
+    ttk.Label(main_frame, text=f"Sistema de gestión de ficheros de {usuario}", font=("Arial", 16, "bold"), anchor="center").pack(pady=10)
+
+    ttk.Button(main_frame, text="← Volver", command=lambda: ventana_anterior(usuario)).pack(anchor="nw", pady=5)
+
+    ttk.Button(main_frame, text="Subir Archivo", command=lambda: seleccionar_archivo(usuario)).pack(pady=5)
+
+    ttk.Label(main_frame, text="Compartir Archivo:").pack(anchor="w")
+    entry_compartir = ttk.Entry(main_frame, width=30)
+    entry_compartir.pack(pady=5)
+
+    ttk.Label(main_frame, text="Usuario a compartir:").pack(anchor="w")
+    entry_usuario_a_compartir = ttk.Entry(main_frame, width=30)
+    entry_usuario_a_compartir.pack(pady=5)
+
+    ttk.Button(main_frame, text="Compartir", command=lambda: compartir_documento(
+        usuario, entry_compartir.get(), entry_usuario_a_compartir.get())).pack(pady=5)
+
+    ttk.Label(main_frame, text="Editar Archivo:").pack(anchor="w")
+    entry_editar = ttk.Entry(main_frame, width=30)
+    entry_editar.pack(pady=5)
+
+    ttk.Button(main_frame, text="Editar", command=lambda: editar_documento(usuario, entry_editar.get())).pack(pady=5)
+
+    ttk.Label(main_frame, text="Ver Historial de Archivo:").pack(anchor="w")
+    entry_historial = ttk.Entry(main_frame, width=30)
+    entry_historial.pack(pady=5)
+
+    ttk.Button(main_frame, text="Ver Historial", command=lambda: ver_historial_edicion(entry_historial.get())).pack(pady=5)
+
+def ver_carpeta(usuario, ventana_anterior):
     ventana_carpeta = Toplevel(root)
     ventana_carpeta.title(f"Carpeta de {usuario}")
-    ventana_carpeta.geometry("400x300")
+    ventana_carpeta.geometry("600x400")
+
+    main_frame = ttk.Frame(ventana_carpeta, padding=20, style="TFrame")
+    main_frame.pack(expand=True, fill="both")
+
     ruta_carpeta = os.path.join("Users", usuario)
-    
+
     if not os.path.exists(ruta_carpeta):
         messagebox.showerror("Error", f"No se encontró la carpeta de {usuario}.")
         return
 
     archivos = os.listdir(ruta_carpeta)
-    # Excluir la carpeta 'claves' de la lista de archivos
     archivos = [archivo for archivo in archivos if archivo != "claves"]
 
+    ttk.Button(main_frame, text="← Volver", command=lambda: ventana_anterior(usuario)).pack(anchor="nw", pady=5)
+
     if not archivos:
-        tk.Label(ventana_carpeta, text="La carpeta está vacía.", font=("Arial", 12)).pack(pady=10)
+        ttk.Label(main_frame, text="La carpeta está vacía.", font=("Arial", 12)).pack(pady=10)
     else:
-        tk.Label(ventana_carpeta, text="Archivos en tu carpeta:", font=("Arial", 12, "bold")).pack(pady=10)
-        listbox_archivos = tk.Listbox(ventana_carpeta, width=50, height=10)
-        listbox_archivos.pack(pady=5)
-        
-        # Agregar archivos a la lista, eliminando la extensión '.enc'
+        ttk.Label(main_frame, text="Archivos en tu carpeta:", font=("Arial", 12, "bold")).pack(pady=10)
+
+        listbox_archivos = tk.Listbox(main_frame, width=50, height=15, font=("Arial", 12))
+        listbox_archivos.pack(pady=10)
+
         for archivo in archivos:
             if archivo.endswith(".enc"):
-                listbox_archivos.insert(tk.END, archivo[:-4])  # Elimina la extensión '.enc'
+                listbox_archivos.insert(tk.END, archivo[:-4])
             else:
                 listbox_archivos.insert(tk.END, archivo)
-        
+
         def on_select(event):
             seleccion = listbox_archivos.curselection()
             if seleccion:
                 nombre_archivo = listbox_archivos.get(seleccion[0])
-                # Agregar la extensión '.enc' si es necesario para abrir el archivo
                 if not nombre_archivo.endswith(".enc"):
                     nombre_archivo += ".enc"
                 editar_documento(usuario, nombre_archivo.replace(".enc", ""))
 
         listbox_archivos.bind("<<ListboxSelect>>", on_select)
 
-def ventana_seleccion(usuario):
-    for widget in root.winfo_children():
-        widget.destroy()
-    tk.Label(root, text=f"Bienvenido, {usuario}!", font=("Arial", 16)).pack(pady=10)
-    btn_ver_carpeta = tk.Button(root, text="Ver mi carpeta", command=lambda: ver_carpeta(usuario), width=20)
-    btn_ver_carpeta.pack(pady=5)
-    btn_acceder_sistema = tk.Button(root, text="Acceder al sistema", command=lambda: mostrar_opciones(usuario), width=20)
-    btn_acceder_sistema.pack(pady=5)
 
-def mostrar_opciones(usuario):
-    for widget in root.winfo_children():
-        widget.destroy()
-    tk.Label(root, text=f"Bienvenido, {usuario}!", font=("Arial", 16)).pack(pady=10)
-    btn_volver = tk.Button(root, text="← Volver", command=lambda: ventana_seleccion(usuario), font=("Arial", 12))
-    btn_volver.pack(anchor="nw", padx=10, pady=5)
-    btn_subir = tk.Button(root, text="Subir archivo", command=lambda: seleccionar_archivo(usuario), width=20)
-    btn_subir.pack(pady=5)
-    frame_compartir = tk.Frame(root)
-    frame_compartir.pack(pady=10)
-    tk.Label(frame_compartir, text="Nombre del archivo a compartir:").pack(side=tk.LEFT)
-    entry_compartir = tk.Entry(frame_compartir, width=20)
-    entry_compartir.pack(side=tk.LEFT, padx=(5, 0))
-    tk.Label(frame_compartir, text="Usuario a compartir:").pack(side=tk.LEFT)
-    entry_usuario_a_compartir = tk.Entry(frame_compartir, width=15)
-    entry_usuario_a_compartir.pack(side=tk.LEFT, padx=(5, 0))
-    btn_compartir = tk.Button(root, text="Compartir archivo", command=lambda: compartir_documento(usuario, entry_compartir.get(), entry_usuario_a_compartir.get()), width=20)
-    btn_compartir.pack(pady=5)
-    tk.Label(root, text="Nombre del archivo a editar:").pack(pady=(10, 0))
-    entry_editar = tk.Entry(root, width=30)
-    entry_editar.pack(pady=5)
-    btn_editar = tk.Button(root, text="Editar archivo", command=lambda: editar_documento(usuario, entry_editar.get()), width=20)
-    btn_editar.pack(pady=5)
-    
-    frame_historial = tk.Frame(root)
-    frame_historial.pack(pady=10)
-    tk.Label(frame_historial, text="Nombre del archivo para ver historial:").pack(side=tk.LEFT)
-    entry_historial = tk.Entry(frame_historial, width=30)
-    entry_historial.pack(side=tk.LEFT, padx=(5, 0))
-    btn_ver_historial = tk.Button(root, text="Ver historial", command=lambda: ver_historial_edicion(entry_historial.get()), width=20)
-    btn_ver_historial.pack(pady=5)
-
+# Configuración de la ventana principal
 root = tk.Tk()
-root.title("Sistema de Gestión de Usuarios")
-root.geometry("600x400")
+root.title("Sistema de Gestión de Ficheros")
+root.geometry("700x500")
+root.resizable(False, False)
+root.configure(bg="#f5f5f5")
+
+# Iniciar la sesión
 iniciar_sesion()
+
+# Ejecutar la aplicación
 root.mainloop()
