@@ -374,10 +374,15 @@ def ver_carpeta(usuario):
     ventana_carpeta.title(f"Carpeta de {usuario}")
     ventana_carpeta.geometry("400x300")
     ruta_carpeta = os.path.join("Users", usuario)
+    
     if not os.path.exists(ruta_carpeta):
         messagebox.showerror("Error", f"No se encontró la carpeta de {usuario}.")
         return
+
     archivos = os.listdir(ruta_carpeta)
+    # Excluir la carpeta 'claves' de la lista de archivos
+    archivos = [archivo for archivo in archivos if archivo != "claves"]
+
     if not archivos:
         tk.Label(ventana_carpeta, text="La carpeta está vacía.", font=("Arial", 12)).pack(pady=10)
     else:
