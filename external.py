@@ -58,11 +58,69 @@ def generar_CA_openssl(contraseña_CA):
         ])
 
         return ruta_clave_privada_CA, ruta_certificado_CA
+    else:
+        ruta_clave_privada_CA = os.path.join(carpeta_CA, "clave_privada_CA.pem")
+        ruta_certificado_CA = os.path.join(carpeta_CA, "certificado_CA.pem")
+        return ruta_clave_privada_CA, ruta_certificado_CA
+
+# Funciones para Firma y Cifrado
+def generar_certificado_usuario(usuario, contraseña_clave, ruta_clave_privada_CA, ruta_certificado_CA, contraseña_CA):
+    # Generar un par de claves RSA
+    clave_privada = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+    clave_publica = clave_privada.public_key()
+
+    # Serializar la clave privada con cifrado usando la contraseña del usuario
+    clave_privada_pem = clave_privada.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.BestAvailableEncryption(contraseña_clave.encode())
+    )
+
+    # Serializar la clave pública sin cifrar
+    clave_publica_pem = clave_publica.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+
+    # Crear carpeta "certificados" dentro de la carpeta del usuario si no existe
+    carpeta_certificados = os.path.join("Users", usuario, "claves")
+    if not os.path.exists(carpeta_certificados):
+        os.makedirs(carpeta_certificados)
+
+    # Guardar la clave privada en la carpeta "certificados"
+    ruta_clave_privada = os.path.join(carpeta_certificados, "clave_privada.pem")
+    with open(ruta_clave_privada, "wb") as priv_file:
+        priv_file.write(clave_privada_pem)
+
+    # Guardar la clave pública temporalmente para firmarla con la CA
+    ruta_clave_publica_temp = os.path.join(carpeta_certificados, "clave_publica_temp.pem")
+    with open(ruta_clave_publica_temp, "wb") as pub_file:
+        pub_file.write(clave_publica_pem)
+
+    # Generar una solicitud de firma de certificado (CSR) usando OpenSSL
+    ruta_csr = os.path.join(carpeta_certificados, "solicitud.csr")
+    subprocess.run([
+        "openssl", "req", "-new", "-key", ruta_clave_privada,
+        "-out", ruta_csr, "-subj", f"/CN={usuario}", "-passin", f"pass:{contraseña_clave}"
+    ])
+
+    # Firmar el CSR con la CA para generar el certificado del usuario
+    ruta_certificado = os.path.join(carpeta_certificados, "certificado.pem")
+    subprocess.run([
+        "openssl", "x509", "-req", "-in", ruta_csr, "-CA", ruta_certificado_CA, "-CAkey", ruta_clave_privada_CA,
+        "-CAcreateserial", "-out", ruta_certificado, "-days", "365", "-sha256", "-passin", f"pass:{contraseña_CA}"
+    ])
+
+    # Eliminar el archivo temporal de la clave pública y la CSR
+    os.remove(ruta_clave_publica_temp)
+    os.remove(ruta_csr)
+
+    return ruta_certificado, ruta_clave_privada
 
 
-contraseña_CA = obtener_contraseña_CA()
-
-generar_CA_openssl(contraseña_CA)
 
 
 #Funciones para Firma y Cifrado

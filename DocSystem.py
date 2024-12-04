@@ -6,8 +6,7 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-import shutil
-from external import generar_par_claves
+from external import generar_par_claves, obtener_contraseña_CA, generar_CA_openssl, generar_certificado_usuario
 # Funciones de manejo de credenciales
 def guardar_enJSON(credenciales, archivo):
     with open(archivo, 'w') as file:
@@ -60,8 +59,10 @@ def agregar_credenciales(usuario, contraseña ,contraseña_clavepriv, archivo_js
     
     os.mkdir(os.path.join("Users", usuario))
     os.mkdir(os.path.join("Users", usuario, "claves"))
-    ruta_publica, ruta_privada = generar_par_claves(usuario, contraseña_clavepriv)
-    nueva_credencial.update({"rutapublica" : ruta_publica, "rutaprivada": ruta_privada})
+    contraseña_CA = obtener_contraseña_CA()
+    ruta_clave_privada_CA, ruta_certificado_CA = generar_CA_openssl(contraseña_CA)
+    ruta_certificado, ruta_clavepriv = generar_certificado_usuario(usuario, contraseña_clavepriv, ruta_clave_privada_CA, ruta_certificado_CA, contraseña_CA)
+    nueva_credencial.update({"rutapublica" : ruta_certificado, "rutaprivada": ruta_clavepriv})
     credenciales_guardadas.append(nueva_credencial)
     guardar_enJSON(credenciales_guardadas, archivo_json)
 
