@@ -1,11 +1,7 @@
 import os
 import json
-import tkinter as tk
 import random, string
-from tkinter import messagebox, Toplevel, filedialog
-from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from tkinter import messagebox
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
@@ -13,7 +9,6 @@ from cryptography.hazmat.primitives import padding, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 import datetime
-
 import subprocess
 
 
@@ -184,7 +179,7 @@ def firmar_documento(contenido, ruta_clave_privada, password):
     )
     return signature
 
-# Función para verificar la firma de un documento
+# Función para verificar la firma de un documento usando el certificado público
 def verificar_firma(contenido, firma, ruta_certificado):
     with open(ruta_certificado, "rb") as cert_file:
         certificado = serialization.load_pem_public_key(
@@ -203,7 +198,7 @@ def verificar_firma(contenido, firma, ruta_certificado):
         )
         return True  # Firma válida
     except Exception as e:
-        print(f"Error de verificación: {e}")
+        print(f"Error de verificación de firma")
         return False  # Firma no válida
 
 # Función para guardar los metadatos de edición con múltiples registros
