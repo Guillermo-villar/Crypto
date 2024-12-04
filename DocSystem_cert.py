@@ -389,13 +389,23 @@ def ver_carpeta(usuario):
         tk.Label(ventana_carpeta, text="Archivos en tu carpeta:", font=("Arial", 12, "bold")).pack(pady=10)
         listbox_archivos = tk.Listbox(ventana_carpeta, width=50, height=10)
         listbox_archivos.pack(pady=5)
+        
+        # Agregar archivos a la lista, eliminando la extensión '.enc'
         for archivo in archivos:
-            listbox_archivos.insert(tk.END, archivo)
+            if archivo.endswith(".enc"):
+                listbox_archivos.insert(tk.END, archivo[:-4])  # Elimina la extensión '.enc'
+            else:
+                listbox_archivos.insert(tk.END, archivo)
+        
         def on_select(event):
             seleccion = listbox_archivos.curselection()
             if seleccion:
                 nombre_archivo = listbox_archivos.get(seleccion[0])
+                # Agregar la extensión '.enc' si es necesario para abrir el archivo
+                if not nombre_archivo.endswith(".enc"):
+                    nombre_archivo += ".enc"
                 editar_documento(usuario, nombre_archivo.replace(".enc", ""))
+
         listbox_archivos.bind("<<ListboxSelect>>", on_select)
 
 def ventana_seleccion(usuario):
