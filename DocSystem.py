@@ -77,6 +77,7 @@ def guardar_credencial(usuario, contraseña ,contraseña_clavepriv):
         messagebox.showwarning("Advertencia", "Por favor, completa todos los campos.")
 
 # Funciones de manejo de claves
+texto_clave_maestra = "Texto muy secreto de la clave maestra muy segura"
 def cargar_clave_maestra():
     archivo_clave = "clave_maestra.json"
     if os.path.exists(archivo_clave):
@@ -84,7 +85,6 @@ def cargar_clave_maestra():
             data = json.load(f)
             return bytes.fromhex(data["clave_maestra"]), bytes.fromhex(data["salt_maestro"])
     else:
-        texto_clave_maestra = "Texto muy secreto de la clave maestra muy segura"
         salt_maestro = os.urandom(16).hex()
         clave_maestra = hashear_contraseña(texto_clave_maestra, bytes.fromhex(salt_maestro))
         with open(archivo_clave, 'w') as f:
