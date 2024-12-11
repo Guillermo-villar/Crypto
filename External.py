@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives import padding, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 import datetime
+from cryptography import x509
 import subprocess
 
 
@@ -232,29 +233,73 @@ def guardar_metadatos_edicion(usuario, nombre_archivo, firma):
     with open(archivo_info, 'w') as f:
         json.dump(metadatos, f, indent=4)
         
-# Función para verificar si el usuario puede editar el documento
-def verificar_permisos_edicion(usuario, nombre_archivo, ruta_certificado):
-    archivo_info = "metadatos_edicion.json"
-    try:
-        with open(archivo_info, 'r') as f:
-            metadatos = json.load(f)
-            if nombre_archivo not in metadatos["documentos"]:
-                messagebox.showerror("Error", "No se encontraron metadatos de edición para el archivo.")
-                return False
-
-            metadatos_archivo = metadatos["documentos"][nombre_archivo]
-            firma_ultima_edicion = bytes.fromhex(metadatos_archivo["firma"])
-            contenido_actual = open(os.path.join("Users", usuario, nombre_archivo + ".enc"), "rb").read()
-            if verificar_firma(contenido_actual, firma_ultima_edicion, ruta_certificado):
-                return True
-            else:
-                messagebox.showerror("Error", "La firma del último editor no coincide. No se puede editar.")
-                return False
-    except FileNotFoundError:
-        messagebox.showerror("Error", "Archivo de metadatos de edición no encontrado.")
-        return False
 
 # Función para actualizar la firma al guardar los cambios
 def actualizar_firma(usuario, nombre_archivo, contenido_modificado, ruta_clave_privada, password):
     firma = firmar_documento(contenido_modificado, ruta_clave_privada, password)
     guardar_metadatos_edicion(usuario, nombre_archivo, firma)
+
+# Función para cargar un certificado desde un archivo
+def cargar_certificado(ruta_certificado):
+    with open(ruta_certificado, "rb") as cert_file:
+        return x509.load_pem_x509_certificate(cert_file.read(), backend=default_backend())
+
+# Función para verificar el certificado del usuario
+def verificar_certificado_usuario(ruta_certificado_usuario, ruta_certificado_CA):
+    try:
+        # Cargar los certificados
+        certificado_usuario = cargar_certificado(ruta_certificado_usuario)
+        certificado_CA = cargar_certificado(ruta_certificado_CA)
+
+        # Extraer la clave pública de la CA
+        clave_publica_CA = certificado_CA.public_key()
+
+        # Verificar la firma del certificado del usuario
+        clave_publica_CA.verify(
+            certificado_usuario.signature,
+            certificado_usuario.tbs_certificate_bytes,
+            padding.PKCS1v15(),
+            certificado_usuario.signature_hash_algorithm,
+        )
+
+        # Validar que el emisor del certificado del usuario sea la CA
+        if certificado_usuario.issuer != certificado_CA.subject:
+            raise ValueError("El certificado del usuario no fue emitido por la CA especificada.")
+
+        print("El certificado del usuario es válido y está firmado por la CA.")
+        return True
+
+    except Exception as e:
+        print(f"Error al verificar el certificado del usuario: {e}")
+        return False
+
+# Función para verificar el certificado de la CA
+def verificar_certificado_CA(ruta_certificado_CA):
+    try:
+        # Cargar el certificado de la CA
+        certificado_CA = cargar_certificado(ruta_certificado_CA)
+
+        # Verificar que el certificado de la CA esté autofirmado
+        clave_publica_CA = certificado_CA.public_key()
+        clave_publica_CA.verify(
+            certificado_CA.signature,
+            certificado_CA.tbs_certificate_bytes,
+            padding.PKCS1v15(),
+            certificado_CA.signature_hash_algorithm,
+        )
+
+        print("El certificado de la CA es válido y está autofirmado.")
+        return True
+
+    except Exception as e:
+        print(f"Error al verificar el certificado de la CA: {e}")
+        return False
+    
+
+def verificar_cadena_certificados(ruta_certificado_usuario, ruta_certificado_CA):
+    # Usa las funciones verificar_certificado_usuario y verificar_certificado_CA
+    if verificar_certificado_CA(ruta_certificado_CA) and verificar_certificado_usuario(ruta_certificado_usuario, ruta_certificado_CA):
+        return True
+    else:
+        return False
+

@@ -8,7 +8,7 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from external import *
+from External import *
 
 # Funciones de manejo de credenciales
 def guardar_enJSON(credenciales, archivo):
@@ -207,26 +207,6 @@ def compartir_documento(usuario, nombre_archivo, usuario_a_compartir):
         messagebox.showerror("Error", "El archivo de información de cifrado no fue encontrado.")
 
 
-def verificar_permisos_edicion(usuario, nombre_archivo, ruta_certificado):
-    archivo_info = "metadatos_edicion.json"
-    try:
-        with open(archivo_info, 'r') as f:
-            metadatos = json.load(f)
-            if nombre_archivo not in metadatos["documentos"]:
-                messagebox.showerror("Error", "No se encontraron metadatos de edición para el archivo.")
-                return False
-
-            metadatos_archivo = metadatos["documentos"][nombre_archivo]
-            firma_ultima_edicion = bytes.fromhex(metadatos_archivo["firma"])
-            contenido_actual = open(os.path.join("Users", usuario, nombre_archivo + ".enc"), "rb").read()
-            if verificar_firma(contenido_actual, firma_ultima_edicion, ruta_certificado):
-                return True
-            else:
-                messagebox.showerror("Error", "La firma del último editor no coincide. No se puede editar.")
-                return False
-    except FileNotFoundError:
-        messagebox.showerror("Error", "Archivo de metadatos de edición no encontrado.")
-        return False
 
 # Nueva función para solicitar la contraseña de la clave privada
 def obtener_contraseña_clave_privada(usuario):
@@ -278,34 +258,42 @@ def editar_documento(usuario, nombre_archivo):
         def guardar_cambios():
             nuevo_contenido = text_area.get("1.0", tk.END).encode()
             nueva_clave, nuevo_nonce, nuevo_contenido_cifrado = cifrar_datos_aes_gcm(nuevo_contenido, associated_data)
-            
+
             # Solicitar la clave privada para firmar los cambios
             password_clave_privada = tk.simpledialog.askstring("Clave Privada", "Introduce la clave privada para firmar los cambios:", show="*")
-            
+
             try:
+                # Rutas de los certificados
+                ruta_certificado_usuario = os.path.join("Users", usuario, "claves", "certificado.pem")
+                ruta_certificado_CA = os.path.join("Users", "CA", "certificado_CA.pem")
+
+                # Verificar la cadena de certificados antes de proceder
+                if not verificar_cadena_certificados(ruta_certificado_usuario, ruta_certificado_CA):
+                    raise ValueError("La cadena de certificados no es válida. Verifique los certificados del usuario y la CA.")
+
                 # Verificar y firmar el documento
-                firma = firmar_documento(nuevo_contenido.decode(), os.path.join("Users", usuario, "claves/clave_privada.pem"), password_clave_privada)
+                firma = firmar_documento(nuevo_contenido.decode(), os.path.join("Users", usuario, "claves", "clave_privada.pem"), password_clave_privada)
                 if firma is None:
                     raise ValueError("Clave privada incorrecta.")
-                
+
                 # Guardar la firma en los metadatos
                 guardar_metadatos_edicion(usuario, nombre_archivo, firma)
 
                 # Guardar el nuevo contenido cifrado
                 with open(ruta_archivo, "wb") as f:
                     f.write(nuevo_contenido_cifrado)
-                
+
                 # Actualizar los metadatos
                 info_cifrado["clave"] = cifrar_clave_aes(nueva_clave).hex()
                 info_cifrado["nonce"] = nuevo_nonce.hex()
                 with open("informacion_cifrado.json", "w") as f:
                     informacion_cifrado["documentos"][nombre_archivo] = info_cifrado
                     json.dump(informacion_cifrado, f, indent=4)
-                
+
                 messagebox.showinfo("Éxito", "Documento guardado y cifrado nuevamente.")
                 ventana_edicion.destroy()
             except ValueError as ve:
-                messagebox.showerror("Error", f"La clave privada introducida es incorrecta")
+                messagebox.showerror("Error", f"{ve}")
             except Exception as e:
                 messagebox.showerror("Error", "No se pudo firmar el documento. Verifica que la clave privada sea correcta.")
 
