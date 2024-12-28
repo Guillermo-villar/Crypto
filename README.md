@@ -31,7 +31,7 @@ Follow these steps to set up the project locally.
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/your-username/crypto-manager.git
+    git clone https://github.com/Guillermo-villar/Crypto-safe-Fileshare-App.git
     cd crypto-manager
     ```
 
